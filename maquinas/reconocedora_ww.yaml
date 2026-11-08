@@ -1,0 +1,85 @@
+# MT reconocedora: L = { ww | w ∈ {a, b}+ }
+# Lenguaje que NO es libre de contexto. La cadena se acepta si su primera
+# mitad es identica a su segunda mitad (sin separador entre ellas).
+#
+# Formato: read: [cinta, memoria]   write: [memoria, cinta]
+#
+# Fase 1 (q0 a q3): encontrar la mitad.
+#   Marca alternadamente el primer simbolo sin marcar de la izquierda
+#   (a -> x, b -> y) y el ultimo sin marcar de la derecha (a -> X, b -> Y).
+#   Si al buscar a la derecha ya no queda simbolo sin marcar, la longitud
+#   es impar y se rechaza. Al terminar, la primera mitad queda en
+#   minusculas (x, y) y la segunda en mayusculas (X, Y).
+#
+# Fase 2 (q4 a q6): comparar ambas mitades.
+#   Toma el primer simbolo pendiente de la primera mitad, lo guarda en la
+#   memoria del estado y lo tacha con Z. Luego busca el primer simbolo
+#   pendiente de la segunda mitad y lo compara con la memoria. Si coincide
+#   lo tacha con Z y regresa; si no coincide no hay transicion y se rechaza.
+#   Cuando ya no quedan simbolos pendientes se acepta.
+
+mt:
+  states: [q0, q1, q2, q3, q4, q5, q6, qf]
+  input_alphabet: [a, b]
+  tape_alphabet: [a, b, x, y, X, Y, Z, B]
+  initial_state: q0
+  accept_states: [qf]
+  transitions:
+    # q0: marca el primer simbolo sin marcar de la izquierda
+    - {state: q0, read: [a, B], write: [B, x], move: R, next: q1}
+    - {state: q0, read: [b, B], write: [B, y], move: R, next: q1}
+    # q0 encuentra una marca de la segunda mitad: la mitad ya se encontro
+    - {state: q0, read: [X, B], write: [B, X], move: L, next: q4}
+    - {state: q0, read: [Y, B], write: [B, Y], move: L, next: q4}
+
+    # q1: avanza a la derecha sobre los simbolos sin marcar
+    - {state: q1, read: [a, B], write: [B, a], move: R, next: q1}
+    - {state: q1, read: [b, B], write: [B, b], move: R, next: q1}
+    - {state: q1, read: [X, B], write: [B, X], move: L, next: q2}
+    - {state: q1, read: [Y, B], write: [B, Y], move: L, next: q2}
+    - {state: q1, read: [B, B], write: [B, B], move: L, next: q2}
+
+    # q2: marca el ultimo simbolo sin marcar de la derecha
+    # (si lee x o y la longitud es impar: no hay transicion y se rechaza)
+    - {state: q2, read: [a, B], write: [B, X], move: L, next: q3}
+    - {state: q2, read: [b, B], write: [B, Y], move: L, next: q3}
+
+    # q3: regresa a la izquierda hasta la ultima marca de la primera mitad
+    - {state: q3, read: [a, B], write: [B, a], move: L, next: q3}
+    - {state: q3, read: [b, B], write: [B, b], move: L, next: q3}
+    - {state: q3, read: [x, B], write: [B, x], move: R, next: q0}
+    - {state: q3, read: [y, B], write: [B, y], move: R, next: q0}
+
+    # q4: retrocede hasta el inicio de la cinta
+    - {state: q4, read: [x, B], write: [B, x], move: L, next: q4}
+    - {state: q4, read: [y, B], write: [B, y], move: L, next: q4}
+    - {state: q4, read: [X, B], write: [B, X], move: L, next: q4}
+    - {state: q4, read: [Y, B], write: [B, Y], move: L, next: q4}
+    - {state: q4, read: [Z, B], write: [B, Z], move: L, next: q4}
+    - {state: q4, read: [B, B], write: [B, B], move: R, next: q5}
+
+    # q5: salta los Z y guarda en memoria el siguiente simbolo de la primera mitad
+    - {state: q5, read: [Z, B], write: [B, Z], move: R, next: q5}
+    - {state: q5, read: [x, B], write: [a, Z], move: R, next: q6}
+    - {state: q5, read: [y, B], write: [b, Z], move: R, next: q6}
+    # q5 llega al blanco: todos los simbolos fueron comparados
+    - {state: q5, read: [B, B], write: [B, B], move: S, next: qf}
+
+    # q6: busca el primer simbolo pendiente de la segunda mitad (con memoria a o b)
+    - {state: q6, read: [x, a], write: [a, x], move: R, next: q6}
+    - {state: q6, read: [y, a], write: [a, y], move: R, next: q6}
+    - {state: q6, read: [Z, a], write: [a, Z], move: R, next: q6}
+    - {state: q6, read: [x, b], write: [b, x], move: R, next: q6}
+    - {state: q6, read: [y, b], write: [b, y], move: R, next: q6}
+    - {state: q6, read: [Z, b], write: [b, Z], move: R, next: q6}
+    # q6 compara: solo hay transicion si el simbolo coincide con la memoria
+    - {state: q6, read: [X, a], write: [B, Z], move: L, next: q4}
+    - {state: q6, read: [Y, b], write: [B, Z], move: L, next: q4}
+
+  inputs:
+    - "abaaba"
+    - "abbabb"
+    - "babbbabb"
+    - "ababb"
+    - "abbaab"
+    - "aabbab"

@@ -1,0 +1,93 @@
+# MT alteradora: multiplicacion unaria
+# Entrada: 1^a # 1^b  (a, b >= 1)      Salida en la cinta: 1^(a*b)
+# Ejemplo: 111#11 -> 111111
+#
+# Formato: read: [cinta, memoria]   write: [memoria, cinta]
+#
+# Idea: por cada 1 de la primera cadena (a) se copia completa la segunda
+# cadena (b) al final de la cinta, en una zona de resultado.
+#
+#   q0  recorre la entrada hasta el blanco final y escribe "$" (separador
+#       de la zona de resultado). Regresa a la izquierda (q1).
+#   q1  regresa al inicio de la cinta.
+#   q2  salta las X ya usadas; marca con X el siguiente 1 de a. Si llega a
+#       "#" ya se uso todo a y pasa a la limpieza (q8).
+#   q3  viaja a la derecha hasta el "#" que separa a de b.
+#   q4  en b: marca con Y el siguiente 1 sin copiar y lo lleva a q5.
+#       Si llega a "$" ya copio todo b (q7).
+#   q5  viaja a la derecha hasta el final del resultado y agrega un 1.
+#   q6  regresa hasta el "#" para copiar el siguiente 1 de b.
+#   q7  restaura las Y de b a 1 y regresa a a (q1) para el siguiente 1.
+#   Limpieza (a, #, b y $ se borran, solo queda el resultado):
+#   q8  borra "#" y las X hacia la izquierda.
+#   q9  recorre los blancos y borra b y "$".
+#   q10 llega al resultado y acepta en qf.
+
+mt:
+  states: [q0, q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, qf]
+  input_alphabet: ["1", "#"]
+  tape_alphabet: ["1", "#", "$", X, Y, B]
+  initial_state: q0
+  accept_states: [qf]
+  transitions:
+    # q0: ir al final de la entrada y escribir $
+    - {state: q0, read: ["1", B], write: [B, "1"], move: R, next: q0}
+    - {state: q0, read: ["#", B], write: [B, "#"], move: R, next: q0}
+    - {state: q0, read: [B, B], write: [B, "$"], move: L, next: q1}
+
+    # q1: regresar al inicio de la cinta
+    - {state: q1, read: ["1", B], write: [B, "1"], move: L, next: q1}
+    - {state: q1, read: ["#", B], write: [B, "#"], move: L, next: q1}
+    - {state: q1, read: ["$", B], write: [B, "$"], move: L, next: q1}
+    - {state: q1, read: [X, B], write: [B, X], move: L, next: q1}
+    - {state: q1, read: [B, B], write: [B, B], move: R, next: q2}
+
+    # q2: marcar el siguiente 1 de a
+    - {state: q2, read: [X, B], write: [B, X], move: R, next: q2}
+    - {state: q2, read: ["1", B], write: [B, X], move: R, next: q3}
+    - {state: q2, read: ["#", B], write: [B, B], move: L, next: q8}
+
+    # q3: ir hasta el # que separa a de b
+    - {state: q3, read: ["1", B], write: [B, "1"], move: R, next: q3}
+    - {state: q3, read: ["#", B], write: [B, "#"], move: R, next: q4}
+
+    # q4: tomar el siguiente 1 de b
+    - {state: q4, read: [Y, B], write: [B, Y], move: R, next: q4}
+    - {state: q4, read: ["1", B], write: [B, Y], move: R, next: q5}
+    - {state: q4, read: ["$", B], write: [B, "$"], move: L, next: q7}
+
+    # q5: ir al final del resultado y agregar un 1
+    - {state: q5, read: ["1", B], write: [B, "1"], move: R, next: q5}
+    - {state: q5, read: [Y, B], write: [B, Y], move: R, next: q5}
+    - {state: q5, read: ["$", B], write: [B, "$"], move: R, next: q5}
+    - {state: q5, read: [B, B], write: [B, "1"], move: L, next: q6}
+
+    # q6: volver al # para copiar el siguiente 1 de b
+    - {state: q6, read: ["1", B], write: [B, "1"], move: L, next: q6}
+    - {state: q6, read: [Y, B], write: [B, Y], move: L, next: q6}
+    - {state: q6, read: ["$", B], write: [B, "$"], move: L, next: q6}
+    - {state: q6, read: ["#", B], write: [B, "#"], move: R, next: q4}
+
+    # q7: restaurar b y volver a a
+    - {state: q7, read: [Y, B], write: [B, "1"], move: L, next: q7}
+    - {state: q7, read: ["#", B], write: [B, "#"], move: L, next: q1}
+
+    # q8: borrar las X de a
+    - {state: q8, read: [X, B], write: [B, B], move: L, next: q8}
+    - {state: q8, read: [B, B], write: [B, B], move: R, next: q9}
+
+    # q9: borrar b y $, quedar al inicio del resultado
+    - {state: q9, read: [B, B], write: [B, B], move: R, next: q9}
+    - {state: q9, read: ["1", B], write: [B, B], move: R, next: q9}
+    - {state: q9, read: ["$", B], write: [B, B], move: R, next: q10}
+
+    # q10: resultado, aceptar
+    - {state: q10, read: ["1", B], write: [B, "1"], move: S, next: qf}
+
+  inputs:
+    - "111#11"
+    - "11#1111"
+    - "1111#111"
+    - "11111#11"
+    - "111#"
+    - "1111"

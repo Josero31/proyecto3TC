@@ -1,0 +1,73 @@
+# MT alteradora: ordena alfabeticamente una cadena sobre {a, b, c}
+# Ejemplo: cabac -> aabcc
+#
+# Formato: read: [cinta, memoria]   write: [memoria, cinta]
+#
+# Algoritmo (ordenamiento burbuja sobre la cinta):
+#   q0 recorre la cinta de izquierda a derecha guardando en memoria el
+#   simbolo anterior. Si el simbolo actual es menor que el anterior
+#   (pares ba, ca o cb) hay una inversion:
+#     - escribe el simbolo mayor (el de memoria) en la celda actual,
+#       guarda el menor en memoria y retrocede una celda (q1);
+#     - q1 escribe el simbolo menor en la celda anterior, completando el
+#       intercambio;
+#     - q2 regresa al inicio de la cinta y vuelve a q0.
+#   Si q0 llega al blanco sin encontrar inversiones la cadena ya esta
+#   ordenada; q3 regresa el cabezal al inicio y la MT termina en qf.
+
+mt:
+  states: [q0, q1, q2, q3, qf]
+  input_alphabet: [a, b, c]
+  tape_alphabet: [a, b, c, B]
+  initial_state: q0
+  accept_states: [qf]
+  transitions:
+    # q0 con memoria B (inicio del recorrido): guarda el primer simbolo
+    - {state: q0, read: [a, B], write: [a, a], move: R, next: q0}
+    - {state: q0, read: [b, B], write: [b, b], move: R, next: q0}
+    - {state: q0, read: [c, B], write: [c, c], move: R, next: q0}
+
+    # q0 con memoria a: ningun simbolo es menor que a
+    - {state: q0, read: [a, a], write: [a, a], move: R, next: q0}
+    - {state: q0, read: [b, a], write: [b, b], move: R, next: q0}
+    - {state: q0, read: [c, a], write: [c, c], move: R, next: q0}
+
+    # q0 con memoria b: el par "ba" es una inversion
+    - {state: q0, read: [a, b], write: [a, b], move: L, next: q1}
+    - {state: q0, read: [b, b], write: [b, b], move: R, next: q0}
+    - {state: q0, read: [c, b], write: [c, c], move: R, next: q0}
+
+    # q0 con memoria c: los pares "ca" y "cb" son inversiones
+    - {state: q0, read: [a, c], write: [a, c], move: L, next: q1}
+    - {state: q0, read: [b, c], write: [b, c], move: L, next: q1}
+    - {state: q0, read: [c, c], write: [c, c], move: R, next: q0}
+
+    # q0 llega al final sin inversiones: la cadena esta ordenada
+    - {state: q0, read: [B, B], write: [B, B], move: L, next: q3}
+    - {state: q0, read: [B, a], write: [B, B], move: L, next: q3}
+    - {state: q0, read: [B, b], write: [B, B], move: L, next: q3}
+    - {state: q0, read: [B, c], write: [B, B], move: L, next: q3}
+
+    # q1: escribe el simbolo menor en la celda anterior (completa el intercambio)
+    - {state: q1, read: [b, a], write: [B, a], move: L, next: q2}
+    - {state: q1, read: [c, a], write: [B, a], move: L, next: q2}
+    - {state: q1, read: [c, b], write: [B, b], move: L, next: q2}
+
+    # q2: regresa al inicio de la cinta para un nuevo recorrido
+    - {state: q2, read: [a, B], write: [B, a], move: L, next: q2}
+    - {state: q2, read: [b, B], write: [B, b], move: L, next: q2}
+    - {state: q2, read: [c, B], write: [B, c], move: L, next: q2}
+    - {state: q2, read: [B, B], write: [B, B], move: R, next: q0}
+
+    # q3: regresa el cabezal al inicio de la cadena ya ordenada
+    - {state: q3, read: [a, B], write: [B, a], move: L, next: q3}
+    - {state: q3, read: [b, B], write: [B, b], move: L, next: q3}
+    - {state: q3, read: [c, B], write: [B, c], move: L, next: q3}
+    - {state: q3, read: [B, B], write: [B, B], move: R, next: qf}
+
+  inputs:
+    - "cabac"
+    - "ccbbaa"
+    - "bcaacb"
+    - "abcabc"
+    - "cbacba"
