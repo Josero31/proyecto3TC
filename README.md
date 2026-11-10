@@ -139,3 +139,8 @@ Las tres maquinas se probaron de forma exhaustiva, sin errores:
   a 8, comparando con el ordenamiento esperado.
 - Alteradora de multiplicacion: todas las combinaciones 1^a # 1^b con a, b de
   1 a 8, comparando con 1^(a*b).
+
+
+Video
+
+https://uvggt-my.sharepoint.com/:v:/r/personal/san231221_uvg_edu_gt/_layouts/15/stream.aspx?id=%2Fpersonal%2Fsan231221_uvg_edu_gt%2FDocuments%2Fvideo%20proyecto%203%20TC%2Fproyecto3video.mp4&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&share=cQofCeu4HxzRSJl8YAb7wY4fEgUCM8Bnj94fTWkhPVWG0fiehg
